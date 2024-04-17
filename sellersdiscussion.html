@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeedCord</title>
+    <style>
+        /* CSS styles */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000; /* Black background */
+            color: #0f0; /* Green text */
+            font-family: Courier, monospace;
+            position: relative; /* Add position relative to body */
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1; /* Place behind other elements */
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #2f3136; /* Discord dark theme sidebar color */
+            padding: 10px;
+            width: 200px;
+            height: 100%;
+            overflow-y: auto;
+            z-index: 1; /* Ensure it's above canvas */
+        }
+
+        .navbar a {
+            display: block;
+            padding: 10px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar a:hover {
+            background-color: #40444b; /* Discord dark theme hover color */
+        }
+
+        .chat-box {
+            background-color: #040404; /* Matrix black */
+            color: #00ff00; /* Matrix green */
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: fixed;
+            bottom: 0;
+            left: 50%; /* Center the chat box horizontally */
+            transform: translateX(-50%); /* Center the chat box horizontally */
+            width: calc(100% - 220px); /* Adjusting for the navbar width */
+            height: 300px; /* Fixed height for the chat box */
+            z-index: 1; /* Ensure it's above canvas */
+        }
+
+        .message-container {
+            overflow-y: auto; /* Enable vertical scrolling */
+            height: calc(100% - 60px); /* Height of message container */
+            margin-bottom: 10px; /* Add margin to separate input box */
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #000; /* Matrix black */
+        }
+
+        .message {
+            margin-bottom: 10px; /* Add margin between messages */
+            position: relative; /* Position relative for absolute timestamp */
+            cursor: pointer; /* Change cursor on hover */
+        }
+
+        .message .username {
+            font-weight: bold;
+            color: #0f0; /* Matrix green */
+        }
+
+        .message .content {
+            margin-left: 10px;
+        }
+
+        .message .timestamp {
+            position: absolute;
+            top: -20px; /* Position above the message */
+            right: 0;
+            font-size: 12px;
+            color: #0f0; /* Matrix green */
+            opacity: 0; /* Initially hidden */
+            transition: opacity 0.3s ease; /* Smooth transition */
+        }
+
+        .message:hover .timestamp {
+            opacity: 1; /* Show timestamp on hover */
+        }
+
+        .input-box {
+            display: flex;
+            margin-top: 10px; /* Adjust margin for input box */
+        }
+
+        .input-box input[type="text"] {
+            flex: 1;
+            background-color: #040404; /* Matrix black */
+            color: #00ff00; /* Matrix green */
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            margin-right: 10px;
+            outline: none;
+            /* Disable autocomplete */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .input-box input[type="text"]:focus {
+            border: 1px solid #0f0; /* Matrix green */
+        }
+
+        .input-box input[type="submit"] {
+            background-color: #0f0; /* Matrix green */
+            color: #000; /* Black text */
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .input-box input[type="submit"]:hover {
+            background-color: #0a0; /* Darker shade of matrix green on hover */
+        }
+
+        /* Chat window */
+        .chat-window {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #040404; /* Matrix black */
+            color: #00ff00; /* Matrix green */
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 300px;
+            height: 400px;
+            z-index: 2; /* Ensure it's above other elements */
+        }
+
+        .chat-window.open {
+            display: block;
+        }
+
+        .chat-window .message-container {
+            overflow-y: auto;
+            height: calc(100% - 100px);
+            padding: 10px;
+        }
+
+        .chat-window .input-box {
+            margin-top: 10px;
+            padding: 0 10px;
+        }
+
+        .chat-window input[type="text"] {
+            width: calc(100% - 50px);
+        }
+
+        .chat-window input[type="submit"] {
+            width: 40px;
+            padding: 10px;
+        }
+
+        /* Reset button */
+        .reset-btn {
+            background-color: #f00; /* Red color */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+            display: none;
+        }
+        .reset-btn:hover {
+            background-color: #a00; /* Darker shade of red on hover */
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="navbar">
+        <a href="frontpage.html">Home</a>
+        <a href="updates.html">Updates</a>
+        <a href="newdrops.html">New Drops</a>
+        <a href="sellersdiscussion.html">Sellers Discussion</a>
+        <a href="profile_editor.html">Profile</a> <!-- Profile link -->
+    </div>
+
+    <div class="chat-box">
+        <div class="message-container">
+            <!-- Messages will be dynamically loaded here -->
+            <!-- Example message -->
+            <div class="message">
+                <span class="username">Admin:</span> Hello!
+                <span class="timestamp">11:30 AM</span>
+            </div>
+        </div>
+        <form class="input-box" id="messageForm">
+            <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+            <input type="submit" value="Send">
+        </form>
+        <button class="reset-btn" id="resetBtn" onclick="resetChat()">Reset Chat</button>
+    </div>
+
+    <!-- Chat window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="message-container" id="chatMessageContainer">
+            <!-- Messages will be dynamically loaded here -->
+        </div>
+        <form class="input-box" id="chatMessageForm">
+            <input type="text" id="chatMessageInput" placeholder="Type your message..." autocomplete="off">
+            <input type="submit" value="Send" onclick="sendMessage()">
+        </form>
+        <button class="reset-btn" onclick="closeChat()">Close</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const columns = Math.floor(canvas.width / 10);
+        const charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@#$%^&*()*&^%+-/~{[|`]}";
+        const charArr = charSet.split('');
+        const charArrLength = charArr.length;
+        const drops = [];
+
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.floor(Math.random() * canvas.height);
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0f0';
+            ctx.font = '15px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = charArr[Math.floor(Math.random() * charArrLength)];
+                ctx.fillText(text, i * 10, drops[i] * 10);
+
+                if (drops[i] * 10 > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                drops[i]++;
+            }
+        }
+
+        function loop() {
+            requestAnimationFrame(loop);
+            draw();
+        }
+
+        loop();
+
+        // Function to remove message after 12 hours
+        function removeMessage(messageElement) {
+            messageElement.remove();
+        }
+
+        // Send message functionality
+        document.getElementById('messageForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Get the typed message
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+
+            if (message === '') {
+                return; // Don't send empty messages
+            }
+
+            // Create timestamp
+            const date = new Date();
+            const timestamp = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Save the message
+            saveMessage(message, timestamp);
+
+            // Clear the input box
+            messageInput.value = '';
+
+            // Append the message element to the message container
+            const messageContainer = document.querySelector('.message-container');
+            const messageElement = createMessageElement(message, timestamp);
+            messageContainer.appendChild(messageElement);
+
+            // Scroll to the bottom of the message container
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        });
+
+        // Function to toggle chat box visibility
+        function openChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.classList.add('open');
+
+            // Hide support button when chat window is opened
+            const supportBtn = document.querySelector('.support-btn');
+            supportBtn.style.display = 'none';
+        }
+
+        // Function to close chat window
+        function closeChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.classList.remove('open');
+
+            // Show support button when chat window is closed
+            const supportBtn = document.querySelector('.support-btn');
+            supportBtn.style.display = 'block';
+        }
+
+        // Function to create a message element
+        function createMessageElement(message, timestamp) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.innerHTML = `<span class="username">Admin:</span> ${message} <span class="timestamp">${timestamp}</span>`;
+            return messageElement;
+        }
+
+        // Function to reset chat (only available for admin)
+        function resetChat() {
+            // Clear all messages
+            const messageContainer = document.querySelector('.message-container');
+            messageContainer.innerHTML = '';
+
+            // Hide reset button
+            const resetBtn = document.getElementById('resetBtn');
+            resetBtn.style.display = 'none';
+        }
+
+        // Function to save message to local storage
+        function saveMessage(message, timestamp) {
+            const data = {
+                message: message,
+                timestamp: timestamp
+            };
+            localStorage.setItem('admin_chat_message', JSON.stringify(data));
+        }
+
+        // Check if the user is admin to show the reset button
+        const isAdmin = "Admin"; // Change this to the actual admin username
+        const resetBtn = document.getElementById('resetBtn');
+        if (isAdmin !== "Admin") {
+            resetBtn.style.display = 'none';
+        } else {
+            // Check if there's a saved message and display it
+            const savedData = localStorage.getItem('admin_chat_message');
+            if (savedData) {
+                const { message, timestamp } = JSON.parse(savedData);
+                const messageContainer = document.querySelector('.message-container');
+                const messageElement = createMessageElement(message, timestamp);
+                messageContainer.appendChild(messageElement);
+            }
+        }
+
+        // Function to send message from chat window
+        function sendMessage() {
+            const chatMessageInput = document.getElementById('chatMessageInput');
+            const message = chatMessageInput.value.trim();
+
+            if (message === '') {
+                return; // Don't send empty messages
+            }
+
+            // Create timestamp
+            const date = new Date();
+            const timestamp = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Append the message element to the chat message container
+            const chatMessageContainer = document.getElementById('chatMessageContainer');
+            const messageElement = createMessageElement(message, timestamp);
+            chatMessageContainer.appendChild(messageElement);
+
+            // Scroll to the bottom of the chat message container
+            chatMessageContainer.scrollTop = chatMessageContainer.scrollHeight;
+
+            // Clear the input box
+            chatMessageInput.value = '';
+
+            // Additional functionality to send message to admin (not implemented)
+            // You may implement server-side logic to send this message to admin
+        }
+    </script>
+
+</body>
+
+</html>

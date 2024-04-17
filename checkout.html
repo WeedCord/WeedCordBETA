@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <style>
+        /* CSS styles */
+        body {
+            background: url('matrix-background.jpg') fixed;
+            background-size: cover;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .checkout-info {
+            margin-bottom: 20px;
+        }
+
+        .total-price {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        /* Matrix effect styles */
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="matrix"></canvas> <!-- Add the canvas element -->
+    <div class="container">
+        <h1>Checkout</h1>
+        <div class="checkout-info">
+            <p>Please e-transfer the total amount to <strong>Pineapplepijah@gmail.com</strong> and provide a screenshot of your order and the sent money to our Instagram page.</p>
+        </div>
+        <div class="total-price">
+        </div>
+    </div>
+
+    <script>
+        // JavaScript code for the matrix effect
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const columns = Math.floor(canvas.width / 10);
+        const charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@#$%^&*()*&^%+-/~{[|`]}";
+        const charArr = charSet.split('');
+        const charArrLength = charArr.length;
+        const drops = [];
+
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.floor(Math.random() * canvas.height);
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0f0';
+            ctx.font = '15px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = charArr[Math.floor(Math.random() * charArrLength)];
+                ctx.fillText(text, i * 10, drops[i] * 10);
+
+                if (drops[i] * 10 > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                drops[i]++;
+            }
+        }
+
+        function loop() {
+            requestAnimationFrame(loop);
+            draw();
+        }
+
+        loop();
+
+        // Retrieve total price from URL parameter
+      
+        
+    </script>
+</body>
+
+</html>

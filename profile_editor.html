@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Editor</title>
+    <style>
+        /* CSS styles */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000; /* Black background */
+            color: #0f0; /* Green text */
+            font-family: Courier, monospace;
+            position: relative; /* Add position relative to body */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(64, 68, 75, 0.8); /* Matrix color with opacity */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #040404; /* Matrix black */
+            color: #00ff00; /* Matrix green */
+            outline: none;
+        }
+
+        input[type="submit"] {
+            background-color: #0f0; /* Matrix green */
+            color: #000; /* Black text */
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0a0; /* Darker shade of matrix green on hover */
+        }
+
+        /* Back button */
+        .back-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: #0f0; /* Matrix green */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            z-index: 1; /* Ensure it's above other elements */
+        }
+
+        .back-btn:hover {
+            background-color: #0a0; /* Darker shade of matrix green on hover */
+        }
+
+        /* Sign-out button */
+        .sign-out-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: #00f; /* Blue color */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            z-index: 1; /* Ensure it's above other elements */
+        }
+        .sign-out-btn:hover {
+            background-color: #00a; /* Darker shade of blue on hover */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Profile Editor</h1>
+        <form id="profileForm">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username...">
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="text" id="email" name="email" placeholder="Enter your email...">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="text" id="password" name="password" placeholder="Enter your password...">
+            </div>
+            <input type="submit" value="Save Profile">
+        </form>
+    </div>
+
+    <!-- Back button -->
+    <button class="back-btn" onclick="goBack()">Back</button>
+
+    <!-- Sign-out button -->
+    <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+
+    <script>
+        // Function to go back to the last page
+        function goBack() {
+            window.history.back();
+        }
+
+        // Function to sign out
+        function signOut() {
+            window.location.href = "signin.html";
+            history.pushState(null, null, window.location.href);
+            window.onpopstate = function () {
+                history.go(1);
+            };
+        }
+    </script>
+
+</body>
+
+</html>

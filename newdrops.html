@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeedCord</title>
+    <style>
+        /* CSS styles */
+        body {
+            margin: 0;
+            overflow-x: hidden; /* Hide horizontal scrollbar */
+            background-color: #000; /* Black background */
+            color: #0f0; /* Green text */
+            font-family: Courier, monospace;
+            position: relative; /* Add position relative to body */
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1; /* Place behind other elements */
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: -200px; /* Move the navbar off the screen */
+            background-color: #2f3136; /* Discord dark theme sidebar color */
+            padding: 10px;
+            width: 200px;
+            height: 100%;
+            overflow-y: auto;
+            z-index: 1; /* Ensure it's above canvas */
+            transition: left 0.3s ease; /* Add transition for smooth movement */
+        }
+
+        .navbar.active {
+            left: 0; /* Show the navbar when active class is present */
+        }
+
+        .navbar-toggle {
+            position: fixed;
+            bottom: 10px; /* Move to the bottom left */
+            left: 10px; /* Move to the bottom left */
+            background-color: #2f3136;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 2; /* Ensure it's above other elements */
+        }
+
+        .navbar-toggle:hover {
+            background-color: #40444b; /* Darker shade on hover */
+        }
+
+        .navbar a {
+            display: block;
+            padding: 10px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar a:hover {
+            background-color: #40444b; /* Discord dark theme hover color */
+        }
+
+        /* Product listing styles */
+        .product-listing {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            padding: 20px;
+            padding-top: 50px; /* Add space for cart icon */
+            margin-left: 220px; /* Adjust for left navbar */
+            margin-right: 220px; /* Adjust for right navbar */
+        }
+
+        .product-box {
+            width: calc(25% - 20px);
+            margin-bottom: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative; /* Add position relative */
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product-details {
+            padding: 10px;
+        }
+
+        .product-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .product-price {
+            color: #f0f;
+            font-size: 18px;
+        }
+
+        .add-to-cart {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: #f0f;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .add-to-cart:hover {
+            background-color: #f00;
+        }
+
+        /* Shopping cart icon */
+        .cart-icon {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #2f3136;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 2; /* Ensure it's above other elements */
+        }
+
+        .cart-icon:hover {
+            background-color: #40444b; /* Darker shade on hover */
+        }
+
+        /* Cart navbar */
+        .cart-navbar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            background-color: #2f3136;
+            width: 200px;
+            height: 100%;
+            z-index: 1; /* Ensure it's above other elements */
+            overflow-y: auto;
+            padding-top: 50px; /* Add space for close button */
+            display: none; /* Initially hidden */
+        }
+
+        .cart-navbar.active {
+            display: block; /* Show when active class is present */
+        }
+
+        .cart-items {
+            padding: 0 10px;
+        }
+
+        .checkout-btn {
+            background-color: #0f0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 20px;
+            cursor: pointer;
+            width: calc(100% - 20px);
+        }
+
+        .checkout-btn:hover {
+            background-color: #0a0;
+        }
+
+        @media only screen and (max-width: 1024px) {
+            /* Adjust for tablet devices */
+            .product-listing {
+                margin-left: 0;
+                margin-right: 0;
+            }
+
+            .product-box {
+                width: calc(33.33% - 20px);
+            }
+        }
+
+        @media only screen and (max-width: 768px) {
+            /* Adjust for mobile devices */
+            .product-listing {
+                margin-left: 0;
+                margin-right: 0;
+                padding: 20px 0; /* Remove horizontal padding */
+            }
+
+            .product-box {
+                width: calc(50% - 20px);
+            }
+
+            .navbar {
+                width: 100%;
+                left: -100%; /* Move off the screen */
+            }
+
+            .navbar.active {
+                left: 0; /* Show when active class is present */
+            }
+
+            .navbar-toggle {
+                bottom: 10px;
+                left: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="navbar" id="navbar">
+        <a href="frontpage.html">Home</a>
+        <a href="updates.html">Updates</a>
+        <a href="newdrops.html">New Drops</a>
+        <a href="sellersdiscussion.html">Sellers Discussion</a>
+        <a href="profile_editor.html">Profile</a> <!-- Profile link -->
+    </div>
+
+    <!-- Button to toggle navbar -->
+    <button class="navbar-toggle" onclick="toggleNavbar()">Menu</button>
+
+    <!-- Shopping cart icon -->
+    <div class="cart-icon" onclick="toggleCartNavbar()">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M6 15a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm0 0h8m-8 0-1-4m9 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-9-4h10l2-7H3m2 7L3 4m0 0-.792-3H1" />
+        </svg>
+        <span id="cartItemCount">0</span>
+    </div>
+
+    <!-- Product listings -->
+    <div class="product-listing" id="productListing">
+        <!-- Product listing boxes will be dynamically added here -->
+    </div>
+
+    <!-- Cart navbar -->
+    <div class="cart-navbar" id="cartNavbar">
+        <div class="cart-items" id="cartItems">
+            <!-- Cart items will be dynamically added here -->
+        </div>
+        <button class="checkout-btn" onclick="window.location.href='checkout.html'">Checkout</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const columns = Math.floor(canvas.width / 10);
+        const charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@#$%^&*()*&^%+-/~{[|`]}";
+        const charArr = charSet.split('');
+        const charArrLength = charArr.length;
+        const drops = [];
+
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.floor(Math.random() * canvas.height);
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0f0';
+            ctx.font = '15px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = charArr[Math.floor(Math.random() * charArrLength)];
+                ctx.fillText(text, i * 10, drops[i] * 10);
+
+                if (drops[i] * 10 > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                drops[i]++;
+            }
+        }
+
+        function loop() {
+            requestAnimationFrame(loop);
+            draw();
+        }
+
+        loop();
+
+        // Function to toggle navbar visibility
+        function toggleNavbar() {
+            const navbar = document.getElementById('navbar');
+            navbar.classList.toggle('active');
+        }
+
+        // Function to toggle cart navbar visibility
+        function toggleCartNavbar() {
+            const cartNavbar = document.getElementById('cartNavbar');
+            cartNavbar.classList.toggle('active');
+        }
+
+        // Mock product data
+        const products = [
+            {
+                "id": 1,
+                "name": "GMA (Hybrid) price per oz",
+                "price": 60,
+                "image": "photo_2024-04-15_11-24-51.jpg"
+            },
+            {
+                "id": 2,
+                "name": "animals skunk) price per oz",
+                "price": 55,
+                "image": "animals skunk.jpg"
+            },
+            {
+                "id": 3,
+                "name": "purple kush) price per oz",
+                "price": 55,
+                "image": "purple kush.jpg"
+            },
+            {
+                "id": 4,
+                "name": "vanilla frosting) price per oz",
+                "price": 60,
+                "image": "vanilla frosting.jpg"
+            },
+            {
+                "id": 5,
+                "name": "wappa) price per oz",
+                "price": 55,
+                "image": "wappa.jpg"
+            },
+            {
+                "id": 6,
+                "name": "cotton candy) price per oz",
+                "price": 60,
+                "image": "cotton candy.jpg"
+            },
+            {
+                "id": 7,
+                "name": "[1G] Rainbow Cotton Candy Distillate Runtz & Litty Pen: will come in random flavors ",
+                "price": 35,
+                "image": "rainbow-cotton-litty.webp"
+            },
+            {
+                "id": 8,
+                "name": "RunFree NIC VAPES 5%: 5000 Puffs: Random flavors",
+                "price": 25,
+                "image": "5000puff bar.webp"
+            },
+            {
+                "id": 9,
+                "name": "RunFree NIC VAPES 5%: 9000 Puffs: Strawberry Ice Cream",
+                "price": 30,
+                "image": "9k dispo.webp"
+            },
+            {
+                "id": 10,
+                "name": "[1g] HigherFire Disposable Vape Pen – Random flavors",
+                "price": 35,
+                "image": "highfive1g.webp"
+            },
+            {
+                "id": 11,
+                "name": "Bulk Hash – Gold Seal Afghan 28G",
+                "price": 325,
+                "image": "afghan3.webp"
+            },
+            {
+                "id": 12,
+                "name": "[1000mg] Cannalean – Orange",
+                "price": 25,
+                "image": "cannalean-orange.webp"
+            },
+            {
+                "id": 13,
+                "name": "[2500mg] (One Up – Mushroom Gummies) Several Flavors",
+                "price": 30,
+                "image": "shroom-gummy-apple.webp"
+            },
+            {
+                "id": 14,
+                "name": "[3500mg] Mint (One Up – Mushroom Bars)",
+                "price": 30,
+                "image": "Shroom-Bar-Mint-scaled.webp"
+            },
+            {
+                "id": 15,
+                "name": "[1g] HigherFire Vape Cart – Super Sour Diesel",
+                "price": 20,
+                "image": "hfcart.webp"
+            }
+        ];
+
+        // Function to create product listing boxes
+        function createProductBoxes() {
+            const productListing = document.getElementById('productListing');
+            productListing.innerHTML = ''; // Clear existing content
+
+            products.forEach(product => {
+                const productBox = document.createElement('div');
+                productBox.classList.add('product-box');
+
+                const productImage = document.createElement('img');
+                productImage.classList.add('product-image');
+                productImage.src = product.image;
+                productBox.appendChild(productImage);
+
+                const productDetails = document.createElement('div');
+                productDetails.classList.add('product-details');
+
+                const productName = document.createElement('div');
+                productName.classList.add('product-name');
+                productName.textContent = product.name;
+                productDetails.appendChild(productName);
+
+                const productPrice = document.createElement('div');
+                productPrice.classList.add('product-price');
+                productPrice.textContent = `$${product.price}`;
+                productDetails.appendChild(productPrice);
+
+                const addToCartBtn = document.createElement('button');
+                addToCartBtn.classList.add('add-to-cart');
+                addToCartBtn.textContent = 'Add to Cart';
+                addToCartBtn.onclick = function() {
+                    addToCart(product);
+                };
+                productDetails.appendChild(addToCartBtn);
+
+                productBox.appendChild(productDetails);
+
+                productListing.appendChild(productBox);
+            });
+        }
+
+        // Call the function to create product listing boxes
+        createProductBoxes();
+
+        // Function to add item to cart
+        function addToCart(product) {
+            const cartItems = document.getElementById('cartItems');
+            const cartItemCount = document.getElementById('cartItemCount');
+            const cartItem = document.createElement('div');
+            cartItem.textContent = product.name;
+            cartItems.appendChild(cartItem);
+            // Increment cart item count
+            cartItemCount.textContent = parseInt(cartItemCount.textContent) + 1;
+
+            // Add item to cart data
+            const cartData = JSON.parse(localStorage.getItem('cart')) || [];
+            cartData.push(product);
+            localStorage.setItem('cart', JSON.stringify(cartData));
+        }
+    </script>
+
+</body>
+
+</html>
